@@ -27,7 +27,7 @@ as GZipped JSON files.
 
 ### Loading
 
-   php arisan deuce:load
+    php arisan deuce:load
 
 The load command looks for the files written earlier and writes them to the
 default database connection.
