@@ -27,7 +27,7 @@ as GZipped JSON files.
 
 ### Loading
 
-    php arisan deuce:load
+    php artisan deuce:load
 
 The load command looks for the files written earlier and writes them to the
 default database connection.
@@ -38,3 +38,14 @@ default database connection.
   production.
 - Currently the row size (including JSON meta data) is hard coded at 4K.
   Anything bigger than this will break.
+
+## Todo
+
+- Code comments: code needs proper comment blocks
+- Code cleanup: improve readability; catch more errors
+- File methods: move file methods to traits and contracts; they both use similar
+  methods
+- Single table operation: allow a single table to be operated on
+- Table level config: allow config settings to be overridden on a table level.
+  This will allow admins to further optimize their backups.
+- Line size optimization: allow the linesizes to be edited
