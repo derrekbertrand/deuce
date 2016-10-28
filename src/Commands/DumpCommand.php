@@ -118,7 +118,6 @@ class DumpCommand extends Command
                 $this->fwrite($h, $out);
             }
 
-            $this->info("  Wrote chunk #$chunk_i on $table.");
             $chunk_i++;
         } while(count($rows) == $this->chunksize);
 

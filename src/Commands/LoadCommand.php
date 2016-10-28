@@ -114,7 +114,6 @@ class LoadCommand extends Command
             \DB::table($table)->insert($arr);
             $arr = [];
 
-            $this->info("  Wrote chunk #$chunk_i to DB.");
             $chunk_i++;
         }
 
