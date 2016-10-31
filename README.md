@@ -43,9 +43,5 @@ default database connection.
 
 - Code comments: code needs proper comment blocks
 - Code cleanup: improve readability; catch more errors
-- File methods: move file methods to traits and contracts; they both use similar
-  methods
-- Single table operation: allow a single table to be operated on
 - Table level config: allow config settings to be overridden on a table level.
   This will allow admins to further optimize their backups.
-- Line size optimization: allow the linesizes to be edited

@@ -6,12 +6,14 @@ use Illuminate\Console\Command;
 
 class LoadCommand extends Command
 {
+
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'deuce:load';
+    protected $signature = 'deuce:load
+                            {--T|table=* : The table names to operate on}';
 
     /**
      * The console command description.
@@ -29,10 +31,12 @@ class LoadCommand extends Command
     {
         parent::__construct();
 
+        $this->fh = null;
         $this->tables = config('deuce.tables');
         $this->chunksize = config('deuce.chunksize');
         $this->directory = config('deuce.directory');
         $this->gzip = config('deuce.gzip');
+        $this->linesize = config('deuce.linesize');
     }
 
     /**
@@ -67,8 +71,8 @@ class LoadCommand extends Command
         //let the user know what model we're on
         $this->info('Loading '.basename($file));
 
-        //get a handle on the file
-        $h = $this->fopen($file);
+        //open file for read
+        $this->fopen($file, false);
 
         try {
             \DB::statement("delete from $table where 1");
@@ -83,7 +87,7 @@ class LoadCommand extends Command
             );
         } finally {
             //close the handle if not already closed
-            $this->fclose($h);
+            $this->fclose();
         }
     }
 
@@ -91,7 +95,7 @@ class LoadCommand extends Command
     {
         $arr = [];
         $chunk_i = 0;
-        $in = $this->fgets($h);
+        $in = $this->fgets();
 
         if($in !== "[\n")
             throw new \Exception('Does not appear to be a valid JSON array!');
@@ -100,7 +104,7 @@ class LoadCommand extends Command
         {
             while($in !== false && count($arr) < $this->chunksize)
             {
-                $in = $this->fgets($h);
+                $in = $this->fgets();
 
                 //clean up and get an array from the line, add it to our bulk add
                 $tmp_arr = json_decode(substr($in, 0, strlen($in)-2), true, 2, JSON_BIGINT_AS_STRING);
@@ -118,36 +122,5 @@ class LoadCommand extends Command
         }
 
         $this->info("  Finished $table.");
-    }
-
-    protected function fopen($file)
-    {
-        //todo: check for false
-        if($this->gzip)
-            return gzopen($file, 'r');
-        else
-            return fopen($file, 'r');
-    }
-
-    protected function fclose(&$handle)
-    {
-        //todo: handle errors
-        if($handle == null)
-            return true;
-
-        if($this->gzip)
-            return gzclose($handle);
-        else
-            return fclose($handle);
-    }
-
-    protected function fgets($handle)
-    {
-        if($this->gzip)
-            $ret = gzgets($handle, 4096);
-        else
-            $ret = fgets($handle, 4096);
-
-        return $ret;
     }
 }
