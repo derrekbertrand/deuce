@@ -1,7 +1,7 @@
 {
     "name": "derrekbertrand/deuce",
     "require": {
-        "php": ">=5.6.4",
+        "php": ">=5.6",
         "illuminate/database": ">=5.2"
     },
     "autoload": {

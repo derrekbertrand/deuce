@@ -46,7 +46,7 @@ return [
     | or contain MEDIUMTEXT fields, you might have to reduce the chunk size
     | to avoid running out of memory.
     |
-    | The file wrapper class decides what interface we use to manipulate the
+    | The 'iowrapper' class decides what interface we use to manipulate the
     | backups.
     |
     | When reading files, each instance/row is placed on one line and the
@@ -58,6 +58,6 @@ return [
     */
 
     'chunksize' => env('DEUCE_CHUNKSIZE', 200),
-    'filewrapper' => \DerrekBertrand\Deuce\FileWrappers\PlainFile::class,
+    'iowrapper' => \DerrekBertrand\Deuce\IOWrappers\GZipJSONFile::class,
     'linesize' => env('DEUCE_LINESIZE', 4096)
 ];

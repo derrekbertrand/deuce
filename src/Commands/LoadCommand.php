@@ -35,43 +35,20 @@ class LoadCommand extends Command implements ProcessesRows
         parent::__construct();
 
         $this->chunksize = config('deuce.chunksize');
-        $this->filewrapper = config('deuce.filewrapper');
+        $this->iowrapper = config('deuce.iowrapper');
     }
 
     public function processRows($table)
     {
         //open for read
-        $h = $this->filewrapper::make($table, false);
+        $h = $this->iowrapper::make($table);
 
-        //ensure we remove any existing data
-        \DB::statement("delete from $table where 1");
+        //make sure only the new data is loaded
+        \DB::table($table)->truncate();
 
-        $arr = [];
-        $chunk_i = 0;
-        $in = $h->gets();
-
-        if($in !== "[\n")
-            throw new \Exception('Does not appear to be a valid JSON array!');
-
-        while($in !== false)
-        {
-            while($in !== false && count($arr) < $this->chunksize)
-            {
-                $in = $h->gets();
-
-                //clean up and get an array from the line, add it to our bulk add
-                $tmp_arr = json_decode(substr($in, 0, strlen($in)-2), true, 2, JSON_BIGINT_AS_STRING);
-
-                //array probably means we got the data we wanted
-                if(is_array($tmp_arr))
-                    $arr[] = $tmp_arr;
-            }
-
-            //run the bulk insert and empty the buffer array
-            \DB::table($table)->insert($arr);
-            $arr = [];
-
-            $chunk_i++;
-        }
+        //use the handle to load batches of rows
+        $h->loadRows($this->chunksize, function (array $rows) use ($table) {
+            \DB::table($table)->insert($rows);
+        });
     }
 }
