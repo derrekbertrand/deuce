@@ -67,8 +67,7 @@ class DumpCommand extends Command
         $this->info("Dumping $table.");
 
         //open file for writing
-        $h = $this->filewrapper::make($table, $this->directory, $this->linesize)
-            ->fopen(true);
+        $h = $this->filewrapper::make($table, true);
 
         try {
             //attempt
@@ -79,9 +78,6 @@ class DumpCommand extends Command
                 . PHP_EOL
                 . $e->getMessage()
             );
-        } finally {
-            //close the handle if not already closed
-            $h->fclose();
         }
     }
 
@@ -89,7 +85,7 @@ class DumpCommand extends Command
     {
         $chunk_i = 0; //keep track of the number of chunks
 
-        $h->fwrite("[\n");
+        $h->write("[\n");
 
         do {
             $rows = \DB::select("select * from $table limit ? OFFSET ?", [$this->chunksize, $chunk_i * $this->chunksize]);
@@ -109,12 +105,12 @@ class DumpCommand extends Command
                     JSON_HEX_APOS | JSON_HEX_QUOT | JSON_BIGINT_AS_STRING | JSON_UNESCAPED_UNICODE
                 );
 
-                $h->fwrite($out);
+                $h->write($out);
             }
 
             $chunk_i++;
         } while (count($rows) == $this->chunksize);
 
-        $h->fwrite("\n]");
+        $h->write("\n]");
     }
 }

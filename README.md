@@ -7,7 +7,7 @@
 
 In your Laravel `config/app.php` file, add this to the service providers array:
 
-    'DerrekBertrand\Deuce\Providers\DeuceProvider::class',
+    DerrekBertrand\Deuce\Providers\DeuceProvider::class,
 
 Then run this to publish the `config/deuce.php` file:
 
@@ -36,8 +36,7 @@ default database connection.
 
 - This package is *not* considered stable. Please don't rely on this for
   production.
-- Currently the row size (including JSON meta data) is hard coded at 4K.
-  Anything bigger than this will break.
+- Large text/binary fields may need extra configuration to load (see config/deuce.php)
 
 ## Todo
 

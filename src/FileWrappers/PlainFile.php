@@ -11,17 +11,19 @@ class PlainFile implements FileWrapper
     protected $linesize;
     protected $full_path;
     protected $fh;
+    protected $op_write;
 
-    public static function make($table, $directory, $linesize)
+    public static function make($table, $write)
     {
-        return new static($table, $directory, $linesize);
+        return new static($table, $write);
     }
 
-    protected function __construct($table, $directory, $linesize)
+    protected function __construct($table, $write)
     {
         $this->table = $table;
-        $this->directory = $directory;
-        $this->linesize = $linesize;
+        $this->directory = config('deuce.directory');
+        $this->linesize = config('deuce.linesize');
+        $this->op_write = boolval($write);
 
         //recursively make whatever directory we need
         //it will fail on write if we don't have permissions
@@ -29,20 +31,29 @@ class PlainFile implements FileWrapper
 
         //construct the full path
         $this->full_path = $this->directory.$this->table.'.json';
+
+        //open the file
+        $this->open();
     }
 
-    public function fopen($write)
+    public function __destruct()
+    {
+        //make sure the handle is closed
+        $this->close();
+    }
+
+    public function open()
     {
         //todo: check for errors
-        if ($write)
+        if ($this->op_write)
             $this->fh = fopen($this->full_path, 'w+');
         else
             $this->fh = fopen($this->full_path, 'r');
 
-        return $this;
+        return $this->fh;
     }
 
-    public function fclose()
+    public function close()
     {
         //todo: handle errors
         if($this->fh == null)
@@ -51,14 +62,18 @@ class PlainFile implements FileWrapper
             return fclose($this->fh);
     }
 
-    public function fgets()
+    public function gets()
     {
+        if($this->op_write)
+            throw new \Exception('Tried to read a file opened for writing. That action is not supported.');
         //todo: handle errors
         return fgets($this->fh, $this->linesize);
     }
 
-    public function fwrite($data)
+    public function write($data)
     {
+        if(!$this->op_write)
+            throw new \Exception('Tried to write to a file opened for reading. That action is not supported.');
         //todo: handle error
         return fwrite($this->fh, $data, strlen($data));
     }

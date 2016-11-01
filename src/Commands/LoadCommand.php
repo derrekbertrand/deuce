@@ -31,12 +31,9 @@ class LoadCommand extends Command
     {
         parent::__construct();
 
-        $this->fh = null;
         $this->tables = config('deuce.tables');
         $this->chunksize = config('deuce.chunksize');
-        $this->directory = config('deuce.directory');
-        $this->gzip = config('deuce.gzip');
-        $this->linesize = config('deuce.linesize');
+        $this->filewrapper = config('deuce.filewrapper');
     }
 
     /**
@@ -63,16 +60,11 @@ class LoadCommand extends Command
 
     protected function handleTable($table)
     {
-        $file = $this->directory.$table.'.json';
-
-        if($this->gzip)
-            $file .= '.gz';
-
         //let the user know what model we're on
-        $this->info('Loading '.basename($file));
+        $this->info("Loading $table");
 
         //open file for read
-        $this->fopen($file, false);
+        $h = $this->filewrapper::make($table, false);
 
         try {
             \DB::statement("delete from $table where 1");
@@ -81,13 +73,10 @@ class LoadCommand extends Command
             $this->readLines($h, $table);
         } catch(\Exception $e) {
             //print the message
-            $this->error('Error while processing '.basename($file)
+            $this->error("Error while processing $table"
                 .PHP_EOL
                 .$e->getMessage()
             );
-        } finally {
-            //close the handle if not already closed
-            $this->fclose();
         }
     }
 
@@ -95,7 +84,7 @@ class LoadCommand extends Command
     {
         $arr = [];
         $chunk_i = 0;
-        $in = $this->fgets();
+        $in = $h->gets();
 
         if($in !== "[\n")
             throw new \Exception('Does not appear to be a valid JSON array!');
@@ -104,7 +93,7 @@ class LoadCommand extends Command
         {
             while($in !== false && count($arr) < $this->chunksize)
             {
-                $in = $this->fgets();
+                $in = $h->gets();
 
                 //clean up and get an array from the line, add it to our bulk add
                 $tmp_arr = json_decode(substr($in, 0, strlen($in)-2), true, 2, JSON_BIGINT_AS_STRING);
