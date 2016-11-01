@@ -3,9 +3,12 @@
 namespace DerrekBertrand\Deuce\Commands;
 
 use Illuminate\Console\Command;
+use DerrekBertrand\Deuce\Commands\ProcessesTablesTrait as ProcessesTables;
+use DerrekBertrand\Deuce\Commands\ProcessesRowsInterface as ProcessesRows;
 
-class LoadCommand extends Command
+class LoadCommand extends Command implements ProcessesRows
 {
+    use ProcessesTables;
 
     /**
      * The name and signature of the console command.
@@ -31,57 +34,18 @@ class LoadCommand extends Command
     {
         parent::__construct();
 
-        $this->tables = config('deuce.tables');
         $this->chunksize = config('deuce.chunksize');
         $this->filewrapper = config('deuce.filewrapper');
     }
 
-    /**
-     * Execute the console command.
-     *
-     * @return mixed
-     */
-    public function handle()
+    public function processRows($table)
     {
-        if(!\App::isDownForMaintenance())
-        {
-            $this->error('App must be in maintenance mode to help avoid DB locks.'
-                .PHP_EOL
-                .'Please ensure that no process is writing to the DB while this command runs.');
-            return;
-        }
-
-        //go through and undump each table
-        foreach($this->tables as $table)
-        {
-            $this->handleTable($table);
-        }
-    }
-
-    protected function handleTable($table)
-    {
-        //let the user know what model we're on
-        $this->info("Loading $table");
-
-        //open file for read
+        //open for read
         $h = $this->filewrapper::make($table, false);
 
-        try {
-            \DB::statement("delete from $table where 1");
+        //ensure we remove any existing data
+        \DB::statement("delete from $table where 1");
 
-            //attempt to read into DB
-            $this->readLines($h, $table);
-        } catch(\Exception $e) {
-            //print the message
-            $this->error("Error while processing $table"
-                .PHP_EOL
-                .$e->getMessage()
-            );
-        }
-    }
-
-    protected function readLines($h, $table)
-    {
         $arr = [];
         $chunk_i = 0;
         $in = $h->gets();
@@ -109,7 +73,5 @@ class LoadCommand extends Command
 
             $chunk_i++;
         }
-
-        $this->info("  Finished $table.");
     }
 }
