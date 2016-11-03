@@ -40,15 +40,12 @@ default database connection.
 
 ## Todo
 
+- URI option for command (with user, chunk_size, page as variables). This will
+  open up the possibility of seeding off of an API.
+- CSVFile wrapper
+- Truncate optional
 - Code comments: code needs proper comment blocks
 - Code cleanup: improve readability; catch more errors
 - Table level config: allow config settings to be overridden on a table level.
   This will allow admins to further optimize their backups.
-- Finish Load command
-- Have the file wrapper load directory and linesize if needed; no need to pass
-  it around in the command when we don't even use it
-- Consider removing file specific code from command. The library will be much
-  more flexible if we let the file wrapper take care of formatting. Who knows,
-  in the future this may not even be file backed, but a method of DB sync/
-  Amazon S3 backed / or import from more obscure formats.
 - Unit tests?

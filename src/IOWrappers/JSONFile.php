@@ -36,7 +36,11 @@ class JSONFile implements IOWrapper
     {
         $this->open('r');
 
-        $arr = [];
+        //make sure only the new data is loaded
+        //loadRows should only be called once per table, so this should be fine
+        \DB::table($this->table)->truncate();
+
+        $arr = new Collection;
         $in = true;
 
         while($in !== false)
@@ -55,7 +59,7 @@ class JSONFile implements IOWrapper
 
             //run the bulk insert and empty the buffer array
             $cb($arr);
-            $arr = [];
+            $arr = new Collection;
         }
     }
 

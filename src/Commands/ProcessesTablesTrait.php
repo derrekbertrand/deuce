@@ -31,7 +31,7 @@ trait ProcessesTablesTrait
             $this->error('App must be in maintenance mode to help avoid DB locks.'
                 . PHP_EOL
                 . 'Please ensure that no process is writing to the DB while this command runs.');
-            return;
+            return 1;
         }
 
         //go through and process each table
@@ -47,10 +47,12 @@ trait ProcessesTablesTrait
                     . PHP_EOL
                     . $e->getMessage()
                 );
+
                 //don't say we finished it, because we didn't
-                return 1;
+                return 2;
             }
 
+            //tell the user everything is okay in the world
             $this->info("  Finished $table");
 
             return 0;
