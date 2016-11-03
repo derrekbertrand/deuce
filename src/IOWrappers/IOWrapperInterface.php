@@ -34,9 +34,9 @@ interface IOWrapperInterface {
      * rows to the callback in sequence, where it is expected to be loaded
      * into the database. How it gets the rows is 
      *
-     * @param int $chunksize
+     * @param int $chunk_size
      * @param callable $cb
      * @return void
      */
-    public function loadRows($chunksize, callable $cb);
+    public function loadRows($chunk_size, callable $cb);
 }

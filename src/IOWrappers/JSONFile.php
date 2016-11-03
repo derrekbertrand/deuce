@@ -12,6 +12,7 @@ class JSONFile implements IOWrapper
     protected $linesize;
     protected $full_path;
     protected $fh;
+    protected $chunk_i;
 
     public static function make($table)
     {
@@ -21,6 +22,7 @@ class JSONFile implements IOWrapper
     protected function __construct($table)
     {
         $this->table = $table;
+        $this->chunk_i = 0;
         $this->directory = config('deuce.directory');
         $this->linesize = config('deuce.linesize');
 
@@ -32,7 +34,7 @@ class JSONFile implements IOWrapper
         $this->full_path = $this->directory.$this->table.'.json';
     }
 
-    public function loadRows($chunksize, callable $cb)
+    public function loadRows($chunk_size, callable $cb)
     {
         $this->open('r');
 
@@ -45,7 +47,7 @@ class JSONFile implements IOWrapper
 
         while($in !== false)
         {
-            while($in !== false && count($arr) <= $chunksize)
+            while($in !== false && count($arr) <= $chunk_size)
             {
                 $in = $this->gets();
 
@@ -67,26 +69,18 @@ class JSONFile implements IOWrapper
     {
         $this->open('w+');
 
-        static $chunk_i = 0;
-
-        $rowcount = count($rows);
         //serialize each row as json
-        for ($i = 0; $i < $rowcount; $i++) {
+        $rows->each(function ($item, $key) {
             //if $chunk_i and $i are both 0, we shouldn't put a comma
             //further if either is non-zero, add a comma
-            if ($chunk_i || $i) {
-                $out = ",\n";
-            } else {
-                $out = '';
-            }
+            if ((!$this->chunk_i) && (!$key))
+                $this->write(",\n");
 
-            $out .= json_encode($rows[$i],
-                JSON_HEX_APOS | JSON_HEX_QUOT | JSON_BIGINT_AS_STRING | JSON_UNESCAPED_UNICODE
-            );
+            //write the item as a JSON string
+            $this->write(json_encode($item, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_BIGINT_AS_STRING | JSON_UNESCAPED_UNICODE));
+        });
 
-            $this->write($out);
-        }
-        $chunk_i++;
+        $this->chunk_i++;
     }
 
     public function __destruct()
