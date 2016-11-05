@@ -73,7 +73,7 @@ class JSONFile implements IOWrapper
         $rows->each(function ($item, $key) {
             //if $chunk_i and $i are both 0, we shouldn't put a comma
             //further if either is non-zero, add a comma
-            if ((!$this->chunk_i) && (!$key))
+            if ($this->chunk_i || $key)
                 $this->write(",\n");
 
             //write the item as a JSON string

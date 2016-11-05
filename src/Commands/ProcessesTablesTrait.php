@@ -54,8 +54,8 @@ trait ProcessesTablesTrait
 
             //tell the user everything is okay in the world
             $this->info("  Finished $table");
-
-            return 0;
         }
+
+        return 0;
     }
 }
