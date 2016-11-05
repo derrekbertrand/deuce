@@ -1,6 +1,7 @@
 <?php
 
 namespace DerrekBertrand\Deuce\Commands;
+use Illuminate\Database\QueryException;
 
 /**
  * Makes the handle method for Dump and Load.
@@ -41,21 +42,26 @@ trait ProcessesTablesTrait
 
             try {
                 $this->processRows($table);
+            } catch (QueryException $e)
+            {
+                $this->error('QueryException: the table might not exist, or your chunk size is too big for SQL to process.');
+                return 2;
             } catch (\Exception $e) {
                 //print the message
-                $this->error("Error while processing $table:"
+                $this->error(get_class($e)." while processing $table:"
                     . PHP_EOL
                     . $e->getMessage()
                 );
 
                 //don't say we finished it, because we didn't
-                return 2;
+                return -1;
             }
 
             //tell the user everything is okay in the world
             $this->info("  Finished $table");
         }
 
+        $this->warn('Peak memory consumption: '.intval(memory_get_peak_usage()/1024).'KiB');
         return 0;
     }
 }
